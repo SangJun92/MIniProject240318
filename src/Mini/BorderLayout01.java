@@ -4,23 +4,26 @@ import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
 public class BorderLayout01 extends JFrame implements ActionListener {
 
-    JTextField tfWriter, tfSubject;
-    JTextArea tfContent;
+	JTextArea tfContent;
+    JTextField tfStudentID, tfName, tfPhoneNumber, tfMajor1, tfMajor2, tfLiberalArts1, tfLiberalArts2;
 
     public BorderLayout01() {
         setTitle("성적 조회 프로그램");
@@ -34,57 +37,72 @@ public class BorderLayout01 extends JFrame implements ActionListener {
         jp1.add(jl, BorderLayout.NORTH);
 
         JPanel jp2 = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 10));
-        jp2.setBorder(new EmptyBorder(10, 10, 10, 10));
-
-//        String ButtonName[] = {"등록하기", "학번조회", "이름조회", "삭제하기", "프로그램 종료"};
-//        for (int i = 0; i < ButtonName.length; i++) {
-//            JButton jb = new JButton(ButtonName[i]);
-//            jp2.add(jb);
-//        }
+        jp2.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         jp1.add(jp2, BorderLayout.SOUTH);
 
         JButton registerButton = new JButton("등록하기");
         jp2.add(registerButton);
         registerButton.addActionListener(this);
-        
-        JButton registerButton1 = new JButton("학번조회");
-        jp2.add(registerButton1);
-        registerButton1.addActionListener(this);
-        
-        JButton registerButton2 = new JButton("이름조회");
-        jp2.add(registerButton2);
-        registerButton2.addActionListener(this);
-        
-        JButton registerButton3 = new JButton("삭제하기");
-        jp2.add(registerButton3);
-        registerButton3.addActionListener(this);
-        
-        JButton registerButton4 = new JButton("프로그램종료");
-        jp2.add(registerButton4);
-        registerButton4.addActionListener(this);
 
-        Container c = new JPanel(new BorderLayout());
-        jp1.add(c, BorderLayout.CENTER);
+        JButton searchByIDButton = new JButton("학번조회");
+        jp2.add(searchByIDButton);
+        searchByIDButton.addActionListener(this);
 
-        JPanel formPanel = new JPanel(new BorderLayout());
-        c.add(formPanel, BorderLayout.CENTER);
+        JButton searchByNameButton = new JButton("이름조회");
+        jp2.add(searchByNameButton);
+        searchByNameButton.addActionListener(this);
 
-        JTextArea tfContent = new JTextArea(5, 20);
-        formPanel.add(new JScrollPane(tfContent), BorderLayout.CENTER);
+        JButton deleteButton = new JButton("삭제하기");
+        jp2.add(deleteButton);
+        deleteButton.addActionListener(this);
 
-        formPanel.add(new JLabel("학번 "), BorderLayout.WEST);
-        formPanel.add(new JTextField(20), BorderLayout.CENTER);
-        formPanel.add(new JLabel("이름 "), BorderLayout.WEST);
-        formPanel.add(new JTextField(20), BorderLayout.CENTER);
-        formPanel.add(new JLabel("연락처 "), BorderLayout.WEST);
-        formPanel.add(new JTextField(20), BorderLayout.CENTER);
-        formPanel.add(new JLabel("학과 "), BorderLayout.WEST);
-        formPanel.add(new JTextField(20), BorderLayout.CENTER);
-        formPanel.add(new JLabel("전공 "), BorderLayout.WEST);
-        formPanel.add(new JTextField(20), BorderLayout.CENTER);
-        formPanel.add(new JLabel("교양 "), BorderLayout.WEST);
-        formPanel.add(new JTextField(20), BorderLayout.CENTER);
+        JButton exitButton = new JButton("프로그램종료");
+        jp2.add(exitButton);
+        exitButton.addActionListener(this);
 
+        JPanel jp3 = new JPanel(new BorderLayout());
+        jp1.add(jp3, BorderLayout.CENTER);
+
+        tfContent = new JTextArea(20, 50);
+        jp3.add(new JScrollPane(tfContent), BorderLayout.CENTER);
+
+        JPanel formPanel = new JPanel(new GridLayout(7, 2));
+        jp3.add(formPanel, BorderLayout.WEST);
+
+        JLabel[] labels = {
+            new JLabel("학번:"),
+            new JLabel("이름:"),
+            new JLabel("연락처:"),
+            new JLabel("전공1:"),
+            new JLabel("전공2:"),
+            new JLabel("교양1:"),
+            new JLabel("교양2:")
+        };
+
+        tfStudentID = new JTextField();
+        tfName = new JTextField();
+        tfPhoneNumber = new JTextField();
+        tfMajor1 = new JTextField();
+        tfMajor2 = new JTextField();
+        tfLiberalArts1 = new JTextField();
+        tfLiberalArts2 = new JTextField();
+
+        JTextField[] textFields = {
+            tfStudentID,
+            tfName,
+            tfPhoneNumber,
+            tfMajor1,
+            tfMajor2,
+            tfLiberalArts1,
+            tfLiberalArts2
+        };
+
+        for (int i = 0; i < labels.length; i++) {
+            formPanel.add(labels[i]);
+            formPanel.add(textFields[i]);
+        }
+
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setVisible(true);
     }
 
@@ -94,30 +112,22 @@ public class BorderLayout01 extends JFrame implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-//    	JOptionPane.showMessageDialog(this, "등록되었습니다.");
-//        System.out.println("등록하기 버튼이 클릭되었습니다.");
-    	
-    	JButton sourceButton = (JButton) e.getSource();
+        JButton sourceButton = (JButton) e.getSource();
         String buttonLabel = sourceButton.getText();
-    	
-        switch (buttonLabel) {
-        case "등록하기":
-            JOptionPane.showMessageDialog(this, "등록되었습니다.");
-            break;
-        case "삭제하기":
-            JOptionPane.showMessageDialog(this, "삭제되었습니다.");
-            break;
-        case "프로그램종료":
-            JOptionPane.showMessageDialog(this, "프로그램 종료합니다.");
-            // 프로그램 종료
-            System.exit(0);
-            break;
-        default:
-            // 기본 동작 추가
-            // 예: JOptionPane.showMessageDialog(this, "기본 동작입니다.");
-            break;
-    }
-    }
-    
-}
 
+        switch (buttonLabel) {
+            case "등록하기":
+                JOptionPane.showMessageDialog(this, "등록되었습니다.");
+                break;
+            case "삭제하기":
+                JOptionPane.showMessageDialog(this, "삭제되었습니다.");
+                break;
+            case "프로그램종료":
+                JOptionPane.showMessageDialog(this, "프로그램 종료합니다.");
+                System.exit(0);
+                break;
+            default:
+                break;
+        }
+    }
+}
