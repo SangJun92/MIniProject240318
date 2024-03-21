@@ -2,159 +2,207 @@ package Mini;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class Border_DAO {
 
-	private static final String DRIVER = "oracle.jdbc.driver.OracleDriver";
-	private static final String URL = "jdbc:oracle:thin:@localhost:1521:XE";
+    private static final String DRIVER = "oracle.jdbc.driver.OracleDriver";
+    private static final String URL = "jdbc:oracle:thin:@localhost:1521:XE";
+    private static final String USER = "system"; // DB ID
+    private static final String PASS = "oracle"; // DB 패스워드
 
-	private static final String USER = "system"; // DB ID
-	private static final String PASS = "oracle"; // DB 패스워드
+    BorderLayout borderLayout;
 
-	BorderLayout borderLayout;
-	
-	public Border_DAO() {
-		
-	};
-	
-	public Border_DAO(BorderLayout borderLayout) {
-		this.borderLayout = borderLayout;
-		System.out.println("DAO =>" + borderLayout);
-	}
-	
-	
-	/** DB연결 메소드 */
-	public Connection getConn() {
-		Connection con = null;
+    public Border_DAO() {
 
-		try {
-			Class.forName(DRIVER); // 1. 드라이버 로딩
-			con = DriverManager.getConnection(URL, USER, PASS); // 2. 드라이버 연결
+    }
 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+    public Border_DAO(BorderLayout borderLayout) {
+        this.borderLayout = borderLayout;
+        System.out.println("DAO =>" + borderLayout);
+    }
 
-		return con;
-	}
-	
-	
-	//---------------------------------------------------
-	
-	/** 게시판 전체 리스트 출력 */
-	// 반환 : 이중 리스트를 반환한다. 리스트안에, 각각의 게시글들이 있다. 
-		public Vector getBoarderList() {
+    /** DB 연결 메소드 */
+    public Connection getConn() {
+        Connection con = null;
 
-			// 임시 데이터를 담을 저장 공간(메모리에 담아둠)
-			Vector data = new Vector();
-			// Jtable에 값을 쉽게 넣는 방법 1. 2차원배열 2. Vector 에 vector추가
+        try {
+            Class.forName(DRIVER); // 1. 드라이버 로딩
+            con = DriverManager.getConnection(URL, USER, PASS); // 2. 드라이버 연결
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-			Connection con = null; // 연결
-			PreparedStatement ps = null; // 명령
-			ResultSet rs = null; // 결과
+        return con;
+    }
 
-	
-	
-	try {
+    /** 데이터베이스에 정보 저장하는 메서드 */
+    public void saveGradesInfo(String studentID, String name, String phoneNumber, String major1, String major2, String liberalArts1, String liberalArts2) {
+        Connection con = null;
+        try {
+            con = getConn(); // 데이터베이스 연결
 
-		con = getConn();
-		// 날짜를 기준으로 큰값에서, 작은 값으로 내려가는 내림차순이니,-> 최신순이 먼저옴.
-		// 날짜가 큰값이 최신 날짜임.
-		String sql = "select * from BOARDER_JAVA order by regDate desc";
-		ps = con.prepareStatement(sql);
-		// 메서드 가 실행이되면, 데이터베이스 조회한 내용이 rs 인스턴스에 임시로 저장됨. 
-		// 저장이 되는 포맷은 마치 엑셀 표와 비슷하다고 생각하시면됨.
-		rs = ps.executeQuery();
+            // SQL 쿼리 작성
+            String sql = "INSERT INTO MiniJava (학번, 이름, 연락처, 전공1, 전공2, 교양1, 교양2) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            PreparedStatement pstmt = con.prepareStatement(sql);
 
-		// rs 는 0행에서 대기하고 있다가, next 만나면, 다음행 1행으로 넘어가
-		// 각 컬럼별로 데이터를 가지고 오는 역할. 
-		while (rs.next()) {
-			int id = rs.getInt("id");
-			String writer = rs.getString("writer");
-			String subject = rs.getString("subject");
-			String content = rs.getString("content");
-			String regDate = rs.getString("regDate");
-			int viewsCount = rs.getInt("viewsCount");
+            // SQL 쿼리에 파라미터 설정
+            pstmt.setString(1, studentID);
+            pstmt.setString(2, name);
+            pstmt.setString(3, phoneNumber);
+            pstmt.setString(4, major1);
+            pstmt.setString(5, major2);
+            pstmt.setString(6, liberalArts1);
+            pstmt.setString(7, liberalArts2);
 
-			Vector row = new Vector();
-			row.add(id);
-			row.add(writer);
-			row.add(subject);
-			row.add(content);
-			row.add(regDate);
-			row.add(viewsCount);
+            // SQL 쿼리 실행
+            pstmt.executeUpdate();
 
-			data.add(row);
-			// 결론은 Vector -> 리스트, 리스트 안에 리스트, 이중 리스트 구조.
-			// 연습, 국,영,수 배열 안에 배열.
-		} // while
-	} catch (Exception e) {
-		e.printStackTrace();
-	}
-	return data;
-}// getMemberList()
+            System.out.println("데이터베이스에 정보 저장 완료");
 
-/** DB데이터 다시 불러오기 */
-public void boarderSelectAll(DefaultTableModel model) {
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            // 연결 해제
+            try {
+                if (con != null) {
+                    con.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    
+    public String searchByID(String studentID) {
+        String result = "";
+        Connection con = null;
 
-	Connection con = null;
-	PreparedStatement ps = null;
-	// 조회시 만 사용할 예정. 
-	ResultSet rs = null;
+        try {
+            con = getConn(); // 데이터베이스 연결
 
-	try {
-		con = getConn();
-		String sql = "select * from BOARDER_JAVA order by regDate dsc";
-		ps = con.prepareStatement(sql);
-		rs = ps.executeQuery();
+            // SQL 쿼리 작성
+            String sql = "SELECT * FROM MiniJava WHERE 학번 = ?";
+            PreparedStatement pstmt = con.prepareStatement(sql);
+            pstmt.setString(1, studentID);
 
-		// DefaultTableModel에 있는 데이터 지우기
-		for (int i = 0; i < model.getRowCount();) {
-			model.removeRow(0);
-		}
+            // SQL 쿼리 실행
+            ResultSet rs = pstmt.executeQuery();
 
-		while (rs.next()) {
-			// 각 행마다, 컬럼들이 6개씩 있음.
-			Object data[] = { rs.getInt(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getString(5),
-					rs.getInt(6), };
+            // 결과 처리
+            if (rs.next()) {
+                result = "학번: " + rs.getString("학번") + "\n";
+                result += "이름: " + rs.getString("이름") + "\n";
+                result += "연락처: " + rs.getString("연락처") + "\n";
+                result += "전공1: " + rs.getString("전공1") + "\n";
+                result += "전공2: " + rs.getString("전공2") + "\n";
+                result += "교양1: " + rs.getString("교양1") + "\n";
+                result += "교양2: " + rs.getString("교양2") + "\n";
+            } else {
+                result = "해당 학번의 정보가 없습니다.";
+            }
 
-			// 테이블에 각행을 각각 추가함.
-			model.addRow(data);
-		}
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            // 연결 해제
+            try {
+                if (con != null) {
+                    con.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
 
-	} catch (SQLException e) {
-		System.out.println(e + "=> boarderSelectAll fail");
-	} finally {
+        return result;
+    }
 
-		if (rs != null)
-			try {
-				rs.close();
-			} catch (SQLException e2) {
-				// TODO Auto-generated catch block
-				e2.printStackTrace();
-			}
-		if (ps != null)
-			try {
-				ps.close();
-			} catch (SQLException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-		if (con != null)
-			try {
-				con.close();
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-	}
-}
-	
-	
-	
-	
-	
-	
-	
-	
+    /** 이름으로 정보 조회하는 메서드 */
+    public String searchByName(String name) {
+        String result = "";
+        Connection con = null;
+
+        try {
+            con = getConn(); // 데이터베이스 연결
+
+            // SQL 쿼리 작성
+            String sql = "SELECT * FROM MiniJava WHERE 이름 = ?";
+            PreparedStatement pstmt = con.prepareStatement(sql);
+            pstmt.setString(1, name);
+
+            // SQL 쿼리 실행
+            ResultSet rs = pstmt.executeQuery();
+
+            // 결과 처리
+            if (rs.next()) {
+                result = "학번: " + rs.getString("학번") + "\n";
+                result += "이름: " + rs.getString("이름") + "\n";
+                result += "연락처: " + rs.getString("연락처") + "\n";
+                result += "전공1: " + rs.getString("전공1") + "\n";
+                result += "전공2: " + rs.getString("전공2") + "\n";
+                result += "교양1: " + rs.getString("교양1") + "\n";
+                result += "교양2: " + rs.getString("교양2") + "\n";
+            } else {
+                result = "해당 이름의 정보가 없습니다.";
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            // 연결 해제
+            try {
+                if (con != null) {
+                    con.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return result;
+    }
+
+    
+    
+    
+    
+
+    public void deleteGradesInfo(String studentID) {
+        Connection con = null;
+
+        try {
+            con = getConn(); // 데이터베이스 연결
+
+            // SQL 쿼리 작성
+            String sql = "DELETE FROM MiniJava WHERE 학번 = ?";
+            PreparedStatement pstmt = con.prepareStatement(sql);
+
+            // SQL 쿼리에 파라미터 설정
+            pstmt.setString(1, studentID);
+
+            // SQL 쿼리 실행
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("데이터베이스에서 정보 삭제 완료");
+            } else {
+                System.out.println("삭제할 데이터가 없습니다.");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            // 연결 해제
+            try {
+                if (con != null) {
+                    con.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
 }
